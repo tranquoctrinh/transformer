@@ -4,13 +4,14 @@ from transformers import AutoTokenizer
 import re
 
 class TranslateDataset(Dataset):
-    def __init__(self, source_tokenizer, target_tokenizer, source_data, target_data, source_max_seq_len, target_max_seq_len):
+    def __init__(self, source_tokenizer, target_tokenizer, source_data=None, target_data=None, source_max_seq_len=256, target_max_seq_len=256, phase="train"):
         self.source_data = source_data
         self.target_data = target_data
         self.source_tokenizer = source_tokenizer
         self.target_tokenizer = target_tokenizer
         self.source_max_seq_len = source_max_seq_len
         self.target_max_seq_len = target_max_seq_len
+        self.phase = phase
     
     def preprocess_seq(self, seq):
         seq = re.sub(
@@ -32,6 +33,11 @@ class TranslateDataset(Dataset):
     def __len__(self):
         return len(self.source_data)
 
+    # create decoder input mask
+    def create_decoder_mask(self, seq_len):
+        mask = torch.ones(seq_len, seq_len).tril()
+        return mask
+    
     def __getitem__(self, index):
         # source_seq, source_idx = self.convert_line_uncased(
         #     tokenizer=self.source_tokenizer, 
@@ -43,52 +49,39 @@ class TranslateDataset(Dataset):
         #     text=self.preprocess_seq(self.target_data[index]), 
         #     max_seq_len=self.target_max_seq_len
         # )
-
+        
         source = self.source_tokenizer(
-            text=self.preprocess_seq(self.source_data[index]),
-            padding="max_length", 
-            max_length=self.source_max_seq_len, 
-            truncation=True, 
-            return_tensors="pt"
-        )
-        target = self.target_tokenizer(
-            text=self.preprocess_seq(self.target_data[index]),
-            padding="max_length",
-            max_length=self.target_max_seq_len,
-            truncation=True,
-            return_tensors="pt"
-        )
+                text=self.preprocess_seq(self.source_data[index]),
+                padding="max_length", 
+                max_length=self.source_max_seq_len, 
+                truncation=True, 
+                return_tensors="pt"
+            )
+        
+        if self.phase == "train":
+            target = self.target_tokenizer(
+                text=self.preprocess_seq(self.target_data[index]),
+                padding="max_length",
+                max_length=self.target_max_seq_len,
+                truncation=True,
+                return_tensors="pt"
+            )
 
-        return {
-            "source_seq": self.source_data[index],
-            "source_ids": source["input_ids"][0],
-            "source_mask": source["attention_mask"][0],
-            "target_seq": self.target_data[index],
-            "target_ids": target["input_ids"][0],
-            "target_mask": target["attention_mask"][0]
+            return {
+                "source_seq": self.source_data[index],
+                "source_ids": source["input_ids"][0],
+                "target_seq": self.target_data[index],
+                "target_ids": target["input_ids"][0],
+                }
+        else:
+            return {
+                "source_seq": self.source_data[index],
+                "source_ids": source["input_ids"][0],
             }
 
+
 def main():
-    configs = {
-        "train_source_data":"./data_en_vi/train.en",
-        "train_target_data":"./data_en_vi/train.vi",
-        "valid_source_data":"./data_en_vi/tst2013.en",
-        "valid_target_data":"./data_en_vi/tst2013.vi",
-        "source_tokenizer":"bert-base-uncased",
-        "target_tokenizer":"vinai/phobert-base",
-        "source_max_seq_len":256,
-        "target_max_seq_len":256,
-        "batch_size":4,
-        "device":"cuda:0",
-        "embedding_dim": 512,
-        "n_layers": 6,
-        "n_heads": 8,
-        "dropout": 0.1,
-        "lr":0.0001,
-        "epochs":30,
-        "printevery": 200,
-        "k":5,
-    }
+    from utils import configs
 
     def read_data(source_file, target_file):
         source_data = open(source_file).read().strip().split("\n")
@@ -119,9 +112,7 @@ def main():
         print(batch["source_seq"])
         print(batch["target_seq"])
         print(batch["source_ids"])
-        print(batch["source_mask"])
         print(batch["target_ids"])
-        print(batch["target_mask"])
         break
 
     import ipdb; ipdb.set_trace()

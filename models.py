@@ -32,46 +32,30 @@ class PositionalEncoder(nn.Module):
         return x
 
 # Self-attention layer
-class SelfAttention(object):
-    def __init__(self, embedding_dim, num_heads, dropout=0.1):
+class SelfAttention(nn.Module):
+    ''' Scaled Dot-Product Attention '''
+
+    def __init__(self, dropout=0.1):
         super(SelfAttention, self).__init__()
-        # The number of heads
-        self.num_heads = num_heads
-        # The dimension of each head
-        self.dim_per_head = embedding_dim // num_heads
-        # The linear projections
-        self.query_projection = nn.Linear(embedding_dim, embedding_dim)
-        self.key_projection = nn.Linear(embedding_dim, embedding_dim)
-        self.value_projection = nn.Linear(embedding_dim, embedding_dim)
         self.dropout = nn.Dropout(dropout)
 
     def forward(self, query, key, value, mask=None):
-        # Apply the linear projections
-        batch_size = query.size(0)
-        dim_per_head = self.dim_per_head
-        num_heads = self.num_heads
-        query = self.query_projection(query)
-        key = self.key_projection(key)
-        value = self.value_projection(value)
-        # Reshape the input
-        query = query.view(batch_size, -1, num_heads, dim_per_head).transpose(1, 2)
-        key = key.view(batch_size, -1, num_heads, dim_per_head).transpose(1, 2)
-        value = value.view(batch_size, -1, num_heads, dim_per_head).transpose(1, 2)
-        # Calculate the attention
-        attention = torch.bmm(query, key.transpose(2, 1)) / np.sqrt(dim_per_head)
+        key_dim = key.size(-1)
+        attn = torch.matmul(query / np.sqrt(key_dim), key.transpose(2, 3))
         if mask is not None:
-            attention = attention.masked_fill(mask == 0, -1e9)
-        attention = self.dropout(torch.softmax(attention, dim=-1))
-        # Apply the attention to the value
-        output = torch.bmm(attention, value)
-        return output
+            mask = mask.unsqueeze(1)
+            attn = attn.masked_fill(mask == 0, -1e9)
+        attn = self.dropout(torch.softmax(attn, dim=-1))
+        output = torch.matmul(attn, value)
 
+        return output
+        
 # Multi-head attention layer
 class MultiHeadAttention(nn.Module):
     def __init__(self, embedding_dim, num_heads, dropout=0.1):
         super(MultiHeadAttention, self).__init__()
         self.embedding_dim = embedding_dim
-        self.self_attention = SelfAttention(embedding_dim, num_heads, dropout)
+        self.self_attention = SelfAttention(dropout)
         # The number of heads
         self.num_heads = num_heads
         # The dimension of each head
