@@ -65,7 +65,13 @@ def train_model(model, train_loader, valid_loader, optim, n_epochs, source_pad_i
                 total_loss = 0
                 temp = time.time()
         
-        valid_loss = validate_model(model, valid_loader, source_pad_id, target_pad_id, device)
+        valid_loss = validate_model(
+            model=model,
+            valid_loader=valid_loader,
+            source_pad_id=source_pad_id,
+            target_pad_id=target_pad_id,
+            device=device
+        )
         print("------- Validate: epoch %d, valid loss = %.3f" % (epoch + 1, valid_loss))
         if valid_loss < best_val_loss:
             best_val_loss = valid_loss
@@ -137,8 +143,17 @@ def main():
     )
 
     model.to(configs["device"])
-    train_model(model, train_loader, valid_loader, optim, configs["n_epochs"], source_tokenizer.pad_token_id, target_tokenizer.pad_token_id, device, configs["print_freq"])
-
+    train_model(
+        model=model,
+        train_loader=train_loader,
+        valid_loader=valid_loader,
+        optim=optim,
+        n_epochs=configs["n_epochs"],
+        source_pad_id=source_tokenizer.pad_token_id,
+        target_pad_id=target_tokenizer.pad_token_id,
+        device=device,
+        print_freq=configs["print_freq"]
+    )
 
 if __name__ == "__main__":
     main()
