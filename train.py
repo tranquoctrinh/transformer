@@ -4,6 +4,7 @@ import time
 import torch.nn.functional as F
 from transformers import AutoTokenizer
 from tqdm import tqdm
+import numpy as np
 
 import os
 os.environ["TOKENIZERS_PARALLELISM"] = "false"
@@ -23,7 +24,23 @@ def create_mask(source_ids, source_pad_id, target_ids):
     return source_mask, target_mask
 
 
-def train_model(model, train_loader, optim, n_epochs, source_pad_id, target_pad_id, device, print_freq=100):
+def validate_model(model, valid_loader, source_pad_id, target_pad_id, device):
+    model.eval()
+    total_loss = 0
+    for i, batch in enumerate(valid_loader):
+        source, target = batch["source_ids"].to(device), batch["target_ids"].to(device)
+        target_input = target[:, :-1]
+        source_mask, target_mask = create_mask(source, source_pad_id, target_input)
+        source_mask, target_mask = source_mask.to(device), target_mask.to(device)
+        preds = model(source, target_input, source_mask, target_mask)
+        gold = target[:, 1:].contiguous().view(-1)
+        loss = F.cross_entropy(preds.view(-1, preds.size(-1)), gold, ignore_index=target_pad_id)
+        total_loss += loss.item()
+    return total_loss / i
+
+
+def train_model(model, train_loader, valid_loader, optim, n_epochs, source_pad_id, target_pad_id, device, print_freq=100):
+    best_val_loss = np.Inf
     model.train()
     start = time.time()
     temp = start
@@ -47,20 +64,16 @@ def train_model(model, train_loader, optim, n_epochs, source_pad_id, target_pad_
                 print("time = %dm, epoch %d, iter = %d, loss = %.3f, %ds per %d iters" % ((time.time() - start) // 60, epoch + 1, i + 1, loss_avg, time.time() - temp, print_freq))
                 total_loss = 0
                 temp = time.time()
+        
+        valid_loss = validate_model(model, valid_loader, source_pad_id, target_pad_id, device)
+        print("------- Validate: epoch %d, valid loss = %.3f" % (epoch + 1, valid_loss))
+        if valid_loss < best_val_loss:
+            best_val_loss = valid_loss
+            # save model
+            torch.save(model.state_dict(), "./model_translate_en_vi.pt")
+            print("Detect improment and save the best model")
+        torch.cuda.empty_cache()
 
-def validate_model(model, valid_loader, source_pad_id, target_pad_id, device):
-    model.eval()
-    total_loss = 0
-    for i, batch in enumerate(valid_loader):
-        source, source_mask, target, target_mask = batch["source_ids"].to(device), batch["target_ids"].to(device)
-        target_input = target[:, :-1]
-        source_mask, target_mask = create_mask(source, source_pad_id, target_input)
-        source_mask, target_mask = source_mask.to(device), target_mask.to(device)
-        preds = model(source, target_input, source_mask, target_mask)
-        gold = target[:, 1:].contiguous().view(-1)
-        loss = F.cross_entropy(preds.view(-1, preds.size(-1)), gold, ignore_index=target_pad_id)
-        total_loss += loss.item()
-    return total_loss / i
 
 
 def main():
@@ -124,16 +137,7 @@ def main():
     )
 
     model.to(configs["device"])
-    train_model(model, train_loader, optim, configs["epochs"], source_tokenizer.pad_token_id, target_tokenizer.pad_token_id, device, configs["print_freq"])
-    valid_loss = validate_model(model, valid_loader, source_tokenizer.pad_token_id, target_tokenizer.pad_token_id, device)
-    print("valid loss = %.3f" % valid_loss)
-    
-    # save model
-    torch.save(model.state_dict(), "./model_translate_en_vi.pt")
-    print("model saved")
-
-    # load model
-    # model.load_state_dict(torch.load("./model_translate_en_vi.pt"))
+    train_model(model, train_loader, valid_loader, optim, configs["n_epochs"], source_tokenizer.pad_token_id, target_tokenizer.pad_token_id, device, configs["print_freq"])
 
 
 if __name__ == "__main__":
