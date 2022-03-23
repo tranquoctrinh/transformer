@@ -20,7 +20,7 @@ def validate_model(model, valid_loader, source_pad_id, target_pad_id, device):
     for i, batch in enumerate(valid_loader):
         source, target = batch["source_ids"].to(device), batch["target_ids"].to(device)
         target_input = target[:, :-1]
-        source_mask, target_mask = model.make_source_mask(source, source_pad_id), model.maske_target_mask(target)
+        source_mask, target_mask = model.make_source_mask(source, source_pad_id), model.make_target_mask(target_input)
         preds = model(source, target_input, source_mask, target_mask)
         gold = target[:, 1:].contiguous().view(-1)
         loss = F.cross_entropy(preds.view(-1, preds.size(-1)), gold, ignore_index=target_pad_id)
@@ -38,7 +38,7 @@ def train_model(model, train_loader, valid_loader, optim, n_epochs, source_pad_i
         for i, batch in enumerate(train_loader):
             source, target = batch["source_ids"].to(device), batch["target_ids"].to(device)
             target_input = target[:, :-1]
-            source_mask, target_mask = model.make_source_mask(source, source_pad_id), model.maske_target_mask(target)
+            source_mask, target_mask = model.make_source_mask(source, source_pad_id), model.make_target_mask(target_input)
             preds = model(source, target_input, source_mask, target_mask)
             optim.zero_grad()
             gold = target[:, 1:].contiguous().view(-1)
