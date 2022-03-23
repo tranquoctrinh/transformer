@@ -90,7 +90,7 @@ def main():
         num_heads=configs["n_heads"],
         dropout=configs["dropout"]
     )
-    model.load_state_dict(torch.load("./model_translate_en_vi.pt"))
+    model.load_state_dict(torch.load(configs["model_path"]))
     model.eval()
     model.to(device)
     print(f"Done load model on the {device} device")  
