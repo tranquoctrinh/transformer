@@ -218,8 +218,8 @@ class Transformer(nn.Module):
     
     def forward(self, source, target):
         # make masks
-        source_mask = self.make_masks(source)
-        target_mask = self.make_masks(target)
+        source_mask = self.make_source_mask(source)
+        target_mask = self.make_target_mask(target)
         # Encoder forward pass
         memory = self.encoder(source, source_mask)
         # Decoder forward pass
