@@ -68,7 +68,6 @@ def train_model(model, train_loader, valid_loader, optim, n_epochs, source_pad_i
 def main():
     # configs
     from utils import configs
-    
     def read_data(source_file, target_file):
         source_data = open(source_file).read().strip().split("\n")
         target_data = open(target_file).read().strip().split("\n")
