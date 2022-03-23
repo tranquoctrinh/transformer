@@ -8,16 +8,17 @@ from tqdm import tqdm
 
 from models import Transformer
 
-# This funciton will translate give a source sentence and return target sentence using beam search
+
 def translate(model, source_sentence, source_tokenizer, target_tokenizer, target_max_seq_len=256, beam_size=5, device=torch.device("cpu")):
+    """
+    This funciton will translate give a source sentence and return target sentence using beam search
+    """
     # Convert source sentence to tensor
     source_tokens = source_tokenizer.encode(source_sentence)
-    source_tensor = torch.tensor(source_tokens).unsqueeze(0)
-    # Add batch dimension
-    source_tensor = source_tensor.to(device)
+    source_tensor = torch.tensor(source_tokens).unsqueeze(0).to(device)
     # Create source sentence mask
     source_mask = model.make_source_mask(source_tensor, source_tokenizer.pad_token_id).to(device)
-    # Initialize decoder hidden state
+    # Feed forward Encoder
     encoder_output = model.encoder.forward(source_tensor, source_mask)
     # Initialize beam list
     beams = [([target_tokenizer.bos_token_id], 0)]
@@ -41,16 +42,16 @@ def translate(model, source_sentence, source_tokenizer, target_tokenizer, target
         
         import copy
         beams = copy.deepcopy(new_beams)
-        # sort beams by score
+        # Sort beams by score
         beams = sorted(beams, key=lambda x: x[1], reverse=True)[:beam_size]
-        # add completed beams to completed list and reduce beam size
+        # Add completed beams to completed list and reduce beam size
         for beam in beams:
             if beam[0][-1] == target_tokenizer.eos_token_id:
                 completed.append(beam)
                 beams.remove(beam)
                 beam_size -= 1
         
-        # print screen progress
+        # Print screen progress
         print(f"Step {_+1}/{target_max_seq_len}")
         print(f"Beam size: {beam_size}")
         print(f"Beams: {[target_tokenizer.decode(beam[0]) for beam in beams]}")
@@ -74,6 +75,7 @@ def translate(model, source_sentence, source_tokenizer, target_tokenizer, target
 def main():
     from utils import configs
     device = torch.device(configs["device"])
+    device = torch.device("cpu")
     source_tokenizer = AutoTokenizer.from_pretrained(configs["source_tokenizer"])
     target_tokenizer = AutoTokenizer.from_pretrained(configs["target_tokenizer"])  
 
