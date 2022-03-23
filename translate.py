@@ -7,7 +7,21 @@ from transformers import AutoTokenizer
 from tqdm import tqdm
 
 from models import Transformer
-from datasets import TranslateDataset
+
+
+def make_source_mask(source_ids, source_pad_id):
+    source_mask = source_ids != source_pad_id
+    source_mask = source_mask.unsqueeze(-2)
+    return source_mask
+
+def make_target_mask(target_ids):
+    def create_decoder_mask(size):
+        mask = torch.ones(size, size).tril()
+        return mask
+    target_mask = create_decoder_mask(target_ids.size(-1))
+    target_mask = target_mask.unsqueeze(0).repeat(target_ids.size(0), 1, 1)
+    return target_mask
+
 
 # This funciton will translate give a source sentence and return target sentence using beam search
 def translate(model, source_sentence, source_tokenizer, target_tokenizer, target_max_seq_len=256, beam_size=5, device=torch.device("cpu")):
@@ -17,45 +31,64 @@ def translate(model, source_sentence, source_tokenizer, target_tokenizer, target
     # Add batch dimension
     source_tensor = source_tensor.to(device)
     # Create source sentence mask
-    # source_mask = model.make_source_mask(source_tensor)
-    source_mask = torch.ones(1, len(source_tokens)).to(device)
+    source_mask = make_source_mask(source_tensor, source_tokenizer.pad_token_id).to(device)
     # Initialize decoder hidden state
-    decoder_hidden = model.encoder.forward(source_tensor, source_mask)
-    # Initialize decoder memory cell
-    decoder_cell = torch.zeros(1, 1, 1024).to(device)
+    encoder_output = model.encoder.forward(source_tensor, source_mask)
     # Initialize beam list
-    beams = [([target_tokenizer.bos_token_id], 0, decoder_hidden, decoder_cell)]
+    beams = [([target_tokenizer.bos_token_id], 0)]
+    completed = []
     # Start decoding
     for _ in range(target_max_seq_len):
-        # Get input token
-        input_token = torch.tensor([[beams[0][0][-1]]]).to(device)
-        # Get hidden and cell states
-        hidden, cell = beams[0][2], beams[0][3]
-        # Create mask
-        target_mask = model.make_target_mask(input_token)
-        # Decoder forward pass
-        pred, hidden, cell = model.decoder.forward(input_token, target_mask, hidden, cell)
-        # Get top k tokens
-        top_k_tokens = torch.argsort(pred[0], descending=True)[:beam_size]
-        # Update beams
-        beams = [(beams[0][0] + [int(top_k_tokens[0])], pred[0][top_k_tokens[0]], hidden, cell)]
-        for i in range(1, beam_size):
-            beams.append((beams[0][0] + [int(top_k_tokens[i])], pred[0][top_k_tokens[i]], hidden, cell))
-        # Sort the beams
-        beams.sort(key=lambda x: x[1], reverse=True)
-        # Get rid of the worst beam
-        beams = beams[:beam_size]
+        new_beams = []
+        for beam in beams:
+            # Get input token
+            input_token = torch.tensor([beam[0]]).to(device)
+            # Create mask
+            target_mask = make_target_mask(input_token).to(device)
+            # Decoder forward pass
+            pred = model.decoder.forward(input_token, encoder_output, source_mask, target_mask)
+            pred = F.softmax(pred, dim=-1).view(-1)
+            # Get top k tokens
+            top_k_scores, top_k_tokens = pred.topk(beam_size)
+            # Update beams
+            for i in range(beam_size):
+                new_beams.append((beam[0] + [top_k_tokens[i].item()], beam[1] + top_k_scores[i].item()))
+        
+        import copy
+        beams = copy.deepcopy(new_beams)
+        # sort beams by score
+        beams = sorted(beams, key=lambda x: x[1], reverse=True)[:beam_size]
+        # add completed beams to completed list and reduce beam size
+        for beam in beams:
+            if beam[0][-1] == target_tokenizer.eos_token_id:
+                completed.append(beam)
+                beams.remove(beam)
+                beam_size -= 1
+        
+        # print screen progress
+        print(f"Step {_+1}/{target_max_seq_len}")
+        print(f"Beam size: {beam_size}")
+        print(f"Beams: {[target_tokenizer.decode(beam[0]) for beam in beams]}")
+        print(f"Completed beams: {[target_tokenizer.decode(beam[0]) for beam in completed]}")
+        print(f"Beams score: {[beam[1] for beam in beams]}")
+        print("-"*100)
+
+        if beam_size == 0:
+            break
+
+
+    # Sort the completed beams
+    completed.sort(key=lambda x: x[1], reverse=True)
     # Get target sentence tokens
-    target_sentence_tokens = beams[0][0][1:]
+    target_tokens = completed[0][0]
     # Convert target sentence from tokens to string
-    target_sentence = target_tokenizer.decode(target_sentence_tokens)
+    target_sentence = target_tokenizer.decode(target_tokens)
     return target_sentence
 
 
 def main():
     from utils import configs
     device = torch.device(configs["device"])
-    device = torch.device("cpu")
     source_tokenizer = AutoTokenizer.from_pretrained(configs["source_tokenizer"])
     target_tokenizer = AutoTokenizer.from_pretrained(configs["target_tokenizer"])  
 
@@ -77,7 +110,8 @@ def main():
     
     # Translate a sentence
     sentence = "This is my pen"
-    print(translate(model, sentence, source_tokenizer, target_tokenizer, device, configs["target_max_seq_len"], configs["beam_size"], device))
+    print(translate(model, sentence, source_tokenizer, target_tokenizer, configs["target_max_seq_len"], configs["beam_size"], device))
+
 
 if __name__ == "__main__":
     main()

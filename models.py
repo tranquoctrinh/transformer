@@ -202,6 +202,15 @@ class Decoder(nn.Module):
 class Transformer(nn.Module):
     def __init__(self, source_vocab_size, target_vocab_size, source_max_seq_len, target_max_seq_len, embedding_dim, num_heads, num_layers, dropout=0.1):
         super(Transformer, self).__init__()
+        self.source_vocab_size = source_vocab_size
+        self.target_vocab_size = target_vocab_size
+        self.source_max_seq_len = source_max_seq_len
+        self.target_max_seq_len = target_max_seq_len
+        self.embedding_dim = embedding_dim
+        self.num_heads = num_heads
+        self.num_layers = num_layers
+        self.dropout = dropout
+    
         self.encoder = Encoder(source_vocab_size, embedding_dim, source_max_seq_len, num_heads, num_layers, dropout)
         self.decoder = Decoder(target_vocab_size, embedding_dim, target_max_seq_len, num_heads, num_layers, dropout)
         self.final_linear = nn.Linear(embedding_dim, target_vocab_size)
