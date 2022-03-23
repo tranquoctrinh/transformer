@@ -16,26 +16,23 @@ from models import Transformer
 
 def validate_model(model, valid_loader, source_pad_id, target_pad_id, device):
     model.eval()
-    total_loss = 0
+    total_loss = []
     bar = tqdm(enumerate(valid_loader), total=len(valid_loader), desc="Validating")
     for i, batch in bar:
         source, target = batch["source_ids"].to(device), batch["target_ids"].to(device)
         target_input = target[:, :-1]
         source_mask, target_mask = model.make_source_mask(source, source_pad_id), model.make_target_mask(target_input)
         preds = model(source, target_input, source_mask, target_mask)
-        preds = F.softmax(preds, dim=-1)
         gold = target[:, 1:].contiguous().view(-1)
         loss = F.cross_entropy(preds.view(-1, preds.size(-1)), gold, ignore_index=target_pad_id)
-        total_loss += loss.item()
-    return total_loss / i
+        total_loss.append(loss.item())
+    return sum(total_loss) / len(total_loss)
 
 
 def train_model(model, train_loader, valid_loader, optim, n_epochs, source_pad_id, target_pad_id, device, print_freq=100):
     best_val_loss = np.Inf
     model.train()
-    start = time.time()
-    temp = start
-    total_loss = 0
+    total_loss = []
     for epoch in range(n_epochs):
         bar = tqdm(enumerate(train_loader), total=len(train_loader), desc=f"Training epoch {epoch+1}/{n_epochs}")
         for i, batch in bar:
@@ -43,18 +40,13 @@ def train_model(model, train_loader, valid_loader, optim, n_epochs, source_pad_i
             target_input = target[:, :-1]
             source_mask, target_mask = model.make_source_mask(source, source_pad_id), model.make_target_mask(target_input)
             preds = model(source, target_input, source_mask, target_mask)
-            preds = F.softmax(preds, dim=-1)
             optim.zero_grad()
             gold = target[:, 1:].contiguous().view(-1)
             loss = F.cross_entropy(preds.view(-1, preds.size(-1)), gold, ignore_index=target_pad_id)
             loss.backward()
             optim.step()
-            total_loss += loss.item()
-            if (i + 1) % print_freq == 0:
-                loss_avg = total_loss / print_freq
-                elapsed = timedelta(seconds=int(time.time() - start))
-                bar.set_postfix(loss=loss_avg)
-                total_loss = 0
+            total_loss.append(loss.item())
+            bar.set_postfix(loss=sum(total_loss) / len(total_loss))
         
         valid_loss = validate_model(
             model=model,
