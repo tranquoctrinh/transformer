@@ -216,7 +216,10 @@ class Transformer(nn.Module):
         self.final_linear = nn.Linear(embedding_dim, target_vocab_size)
         self.dropout = nn.Dropout(dropout)
     
-    def forward(self, source, target, source_mask, target_mask):
+    def forward(self, source, target):
+        # make masks
+        source_mask = self.make_masks(source)
+        target_mask = self.make_masks(target)
         # Encoder forward pass
         memory = self.encoder(source, source_mask)
         # Decoder forward pass
@@ -225,3 +228,11 @@ class Transformer(nn.Module):
         output = self.dropout(output)
         output = self.final_linear(output)
         return output
+    
+    def make_source_mask(source_ids, source_pad_id):
+        return (source_ids != source_pad_id).unsqueeze(-2)
+
+    def make_target_mask(target_ids):
+        batch_size, len_target = target_ids.size()
+        subsequent_mask = (1 - torch.triu(torch.ones((1, len_target, len_target), device=target_ids.device), diagonal=1)).bool()
+        return subsequent_mask

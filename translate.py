@@ -8,21 +8,6 @@ from tqdm import tqdm
 
 from models import Transformer
 
-
-def make_source_mask(source_ids, source_pad_id):
-    source_mask = source_ids != source_pad_id
-    source_mask = source_mask.unsqueeze(-2)
-    return source_mask
-
-def make_target_mask(target_ids):
-    def create_decoder_mask(size):
-        mask = torch.ones(size, size).tril()
-        return mask
-    target_mask = create_decoder_mask(target_ids.size(-1))
-    target_mask = target_mask.unsqueeze(0).repeat(target_ids.size(0), 1, 1)
-    return target_mask
-
-
 # This funciton will translate give a source sentence and return target sentence using beam search
 def translate(model, source_sentence, source_tokenizer, target_tokenizer, target_max_seq_len=256, beam_size=5, device=torch.device("cpu")):
     # Convert source sentence to tensor
@@ -31,7 +16,7 @@ def translate(model, source_sentence, source_tokenizer, target_tokenizer, target
     # Add batch dimension
     source_tensor = source_tensor.to(device)
     # Create source sentence mask
-    source_mask = make_source_mask(source_tensor, source_tokenizer.pad_token_id).to(device)
+    source_mask = model.make_source_mask(source_tensor, source_tokenizer.pad_token_id).to(device)
     # Initialize decoder hidden state
     encoder_output = model.encoder.forward(source_tensor, source_mask)
     # Initialize beam list
@@ -44,7 +29,7 @@ def translate(model, source_sentence, source_tokenizer, target_tokenizer, target
             # Get input token
             input_token = torch.tensor([beam[0]]).to(device)
             # Create mask
-            target_mask = make_target_mask(input_token).to(device)
+            target_mask = model.make_target_mask(input_token).to(device)
             # Decoder forward pass
             pred = model.decoder.forward(input_token, encoder_output, source_mask, target_mask)
             pred = F.softmax(pred, dim=-1).view(-1)

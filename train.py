@@ -5,23 +5,13 @@ import torch.nn.functional as F
 from transformers import AutoTokenizer
 from tqdm import tqdm
 import numpy as np
+from datetime import datetime, timedelta
 
 import os
 os.environ["TOKENIZERS_PARALLELISM"] = "false"
 
 from datasets import TranslateDataset
 from models import Transformer
-
-def create_mask(source_ids, source_pad_id, target_ids):
-    def create_decoder_mask(size):
-        mask = torch.ones(size, size).tril()
-        return mask
-    
-    source_mask = source_ids != source_pad_id
-    source_mask = source_mask.unsqueeze(-2)
-    target_mask = create_decoder_mask(target_ids.size(-1))
-    target_mask = target_mask.unsqueeze(0).repeat(target_ids.size(0), 1, 1)
-    return source_mask, target_mask
 
 
 def validate_model(model, valid_loader, source_pad_id, target_pad_id, device):
@@ -30,9 +20,7 @@ def validate_model(model, valid_loader, source_pad_id, target_pad_id, device):
     for i, batch in enumerate(valid_loader):
         source, target = batch["source_ids"].to(device), batch["target_ids"].to(device)
         target_input = target[:, :-1]
-        source_mask, target_mask = create_mask(source, source_pad_id, target_input)
-        source_mask, target_mask = source_mask.to(device), target_mask.to(device)
-        preds = model(source, target_input, source_mask, target_mask)
+        preds = model(source, target_input)
         gold = target[:, 1:].contiguous().view(-1)
         loss = F.cross_entropy(preds.view(-1, preds.size(-1)), gold, ignore_index=target_pad_id)
         total_loss += loss.item()
@@ -49,11 +37,8 @@ def train_model(model, train_loader, valid_loader, optim, n_epochs, source_pad_i
         for i, batch in enumerate(train_loader):
             source, target = batch["source_ids"].to(device), batch["target_ids"].to(device)
             target_input = target[:, :-1]
-            source_mask, target_mask = create_mask(source, source_pad_id, target_input)
-            source_mask, target_mask = source_mask.to(device), target_mask.to(device)
-            preds = model(source, target_input, source_mask, target_mask)
+            preds = model(source, target_input)
             optim.zero_grad()
-            
             gold = target[:, 1:].contiguous().view(-1)
             loss = F.cross_entropy(preds.view(-1, preds.size(-1)), gold, ignore_index=target_pad_id)
             loss.backward()
@@ -61,7 +46,9 @@ def train_model(model, train_loader, valid_loader, optim, n_epochs, source_pad_i
             total_loss += loss.item()
             if (i + 1) % print_freq == 0:
                 loss_avg = total_loss / print_freq
-                print("time = %dm, epoch %d, iter = %d, loss = %.3f, %ds per %d iters" % ((time.time() - start) // 60, epoch + 1, i + 1, loss_avg, time.time() - temp, print_freq))
+                # convert seconds to days hours minutes seconds
+                elapsed = timedelta(seconds=int(time.time() - start))
+                print("Time = %s, epoch %d, iter = %d, loss = %.3f, %ds per %d iters" % (elapsed, epoch + 1, i + 1, loss_avg, time.time() - temp, print_freq))
                 total_loss = 0
                 temp = time.time()
         
@@ -111,7 +98,7 @@ def main():
         if p.dim() > 1:
             nn.init.xavier_uniform_(p)
             
-    optim = torch.optim.Adam(model.parameters(), lr=0.0001, betas=(0.9, 0.98), eps=1e-9)
+    optim = torch.optim.Adam(model.parameters(), lr=configs["lr"], betas=(0.9, 0.98), eps=1e-9)
 
     train_dataset = TranslateDataset(
         source_tokenizer=source_tokenizer, 
