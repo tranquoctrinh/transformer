@@ -28,7 +28,7 @@ class PositionalEncoder(nn.Module):
         self.register_buffer('pe', pe)
     
     def forward(self, x):
-        x = x*math.sqrt(self.d_model)
+        x = x*math.sqrt(self.embedding_dim)
         seq_length = x.size(1)
         pe = Variable(self.pe[:, :seq_length], requires_grad=False).to(x.device)
         # Add the positional encoding vector to the embedding vector
