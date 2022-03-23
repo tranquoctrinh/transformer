@@ -17,7 +17,8 @@ from models import Transformer
 def validate_model(model, valid_loader, source_pad_id, target_pad_id, device):
     model.eval()
     total_loss = 0
-    for i, batch in enumerate(valid_loader):
+    bar = tqdm(enumerate(valid_loader), total=len(valid_loader), desc="Validating")
+    for i, batch in bar:
         source, target = batch["source_ids"].to(device), batch["target_ids"].to(device)
         target_input = target[:, :-1]
         source_mask, target_mask = model.make_source_mask(source, source_pad_id), model.make_target_mask(target_input)
@@ -35,7 +36,8 @@ def train_model(model, train_loader, valid_loader, optim, n_epochs, source_pad_i
     temp = start
     total_loss = 0
     for epoch in range(n_epochs):
-        for i, batch in enumerate(train_loader):
+        bar = tqdm(enumerate(train_loader), total=len(train_loader), desc=f"Training epoch {epoch+1}/{n_epochs}")
+        for i, batch in bar:
             source, target = batch["source_ids"].to(device), batch["target_ids"].to(device)
             target_input = target[:, :-1]
             source_mask, target_mask = model.make_source_mask(source, source_pad_id), model.make_target_mask(target_input)
@@ -48,11 +50,9 @@ def train_model(model, train_loader, valid_loader, optim, n_epochs, source_pad_i
             total_loss += loss.item()
             if (i + 1) % print_freq == 0:
                 loss_avg = total_loss / print_freq
-                # convert seconds to days hours minutes seconds
                 elapsed = timedelta(seconds=int(time.time() - start))
-                print("Time = %s, epoch %d, iter = %d, loss = %.3f, %ds per %d iters" % (elapsed, epoch + 1, i + 1, loss_avg, time.time() - temp, print_freq))
+                bar.set_postfix(loss=loss_avg, time=elapsed)
                 total_loss = 0
-                temp = time.time()
         
         valid_loss = validate_model(
             model=model,

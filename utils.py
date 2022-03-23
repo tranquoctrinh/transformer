@@ -15,6 +15,6 @@ configs = {
     "dropout": 0.1,
     "lr":0.0001,
     "n_epochs":50,
-    "print_freq": 1000,
+    "print_freq": 5,
     "beam_size":5,
 }
