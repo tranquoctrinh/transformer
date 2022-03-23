@@ -216,10 +216,7 @@ class Transformer(nn.Module):
         self.final_linear = nn.Linear(embedding_dim, target_vocab_size)
         self.dropout = nn.Dropout(dropout)
     
-    def forward(self, source, target):
-        # make masks
-        source_mask = self.make_source_mask(source)
-        target_mask = self.make_target_mask(target)
+    def forward(self, source, target, source_mask, target_mask):
         # Encoder forward pass
         memory = self.encoder(source, source_mask)
         # Decoder forward pass
