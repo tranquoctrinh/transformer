@@ -46,7 +46,7 @@ def train_model(model, train_loader, valid_loader, optim, n_epochs, source_pad_i
             loss.backward()
             optim.step()
             total_loss.append(loss.item())
-            bar.set_postfix(loss=sum(total_loss) / len(total_loss))
+            bar.set_postfix(loss=total_loss[-1])
         
         valid_loss = validate_model(
             model=model,
