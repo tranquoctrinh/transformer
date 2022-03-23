@@ -29,7 +29,7 @@ def validate_model(model, valid_loader, source_pad_id, target_pad_id, device):
     return sum(total_loss) / len(total_loss)
 
 
-def train_model(model, train_loader, valid_loader, optim, n_epochs, source_pad_id, target_pad_id, device, print_freq=100):
+def train_model(model, train_loader, valid_loader, optim, n_epochs, source_pad_id, target_pad_id, device, model_path="./model_translate_en_vi.pt"):
     best_val_loss = np.Inf
     model.train()
     for epoch in range(n_epochs):
@@ -59,7 +59,7 @@ def train_model(model, train_loader, valid_loader, optim, n_epochs, source_pad_i
         if valid_loss < best_val_loss:
             best_val_loss = valid_loss
             # save model
-            torch.save(model.state_dict(), "./model_translate_en_vi.pt")
+            torch.save(model.state_dict(), model_path)
             print("Detect improment and save the best model")
         torch.cuda.empty_cache()
 
@@ -134,7 +134,7 @@ def main():
         source_pad_id=source_tokenizer.pad_token_id,
         target_pad_id=target_tokenizer.pad_token_id,
         device=device,
-        print_freq=configs["print_freq"]
+        model_path=configs["model_path"]
     )
 
 if __name__ == "__main__":

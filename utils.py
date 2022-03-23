@@ -17,4 +17,5 @@ configs = {
     "n_epochs":50,
     "print_freq": 5,
     "beam_size":5,
+    "model_path":"./model_transformer_translate_en_vi.pt"
 }

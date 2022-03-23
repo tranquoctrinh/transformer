@@ -105,18 +105,17 @@ class EncoderLayer(nn.Module):
             nn.ReLU(),
             nn.Linear(embedding_dim * 4, embedding_dim)
         )
+        self.dropout1 = nn.Dropout(dropout)
+        self.dropout2 = nn.Dropout(dropout)
         self.norm1 = Norm(embedding_dim)
         self.norm2 = Norm(embedding_dim)
 
     def forward(self, x, mask=None):
-        # Self attention
-        x = self.self_attention(x, x, x, mask)
-        # Dropout and residual connection
-        x = self.norm1(x + x)
-        # Feed forward
-        x = self.feed_forward(x)
-        # Dropout and residual connection
-        x = self.norm2(x + x)
+        x2 = self.norm1(x)
+        # Add and Muti-head attention
+        x = x + self.dropout1(self.self_attention(x2, x2, x2, mask))
+        x2 = self.norm2(x)
+        x = x + self.dropout2(self.feed_forward(x2))
         return x
 
 # Transformer decoder layer
@@ -130,23 +129,20 @@ class DecoderLayer(nn.Module):
             nn.ReLU(),
             nn.Linear(embedding_dim * 4, embedding_dim)
         )
+        self.dropout1 = nn.Dropout(dropout)
+        self.dropout2 = nn.Dropout(dropout)
+        self.dropout3 = nn.Dropout(dropout)
         self.norm1 = Norm(embedding_dim)
         self.norm2 = Norm(embedding_dim)
         self.norm3 = Norm(embedding_dim)
 
     def forward(self, x, memory, source_mask, target_mask):
-        # Self attention
-        x = self.self_attention(x, x, x, target_mask)
-        # Dropout and residual connection
-        x = self.norm1(x + x)
-        # Encoder attention
-        x = self.encoder_attention(x, memory, memory, source_mask)
-        # Dropout and residual connection
-        x = self.norm2(x + x)
-        # Feed forward
-        x = self.feed_forward(x)
-        # Dropout and residual connection
-        x = self.norm3(x + x)
+        x2 = self.norm1(x)
+        x = x + self.dropout1(self.self_attention(x2, x2, x2, target_mask))
+        x2 = self.norm2(x)
+        x = x + self.dropout2(self.self_attention(x2, memory, memory, source_mask))
+        x2 = self.norm3(x)
+        x = x + self.dropout3(self.feed_forward(x2))
         return x
 
 # Encoder transformer
