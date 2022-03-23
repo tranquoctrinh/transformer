@@ -226,10 +226,10 @@ class Transformer(nn.Module):
         output = self.final_linear(output)
         return output
     
-    def make_source_mask(source_ids, source_pad_id):
+    def make_source_mask(self, source_ids, source_pad_id):
         return (source_ids != source_pad_id).unsqueeze(-2)
 
-    def make_target_mask(target_ids):
+    def make_target_mask(self, target_ids):
         batch_size, len_target = target_ids.size()
         subsequent_mask = (1 - torch.triu(torch.ones((1, len_target, len_target), device=target_ids.device), diagonal=1)).bool()
         return subsequent_mask
