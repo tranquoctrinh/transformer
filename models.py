@@ -16,7 +16,7 @@ class Embedding(nn.Module):
 # The positional encoding vector
 class PositionalEncoder(nn.Module):
     def __init__(self, embedding_dim, max_seq_length=512, dropout=0.1):
-        super(PositionalEncoder).__init__()
+        super(PositionalEncoder, self).__init__()
         self.embedding_dim = embedding_dim
         self.dropout = nn.Dropout(dropout)
         pe = torch.zeros(max_seq_length, embedding_dim)
