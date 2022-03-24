@@ -18,6 +18,6 @@ configs = {
     "lr":0.0001,
     "n_epochs":50,
     "print_freq": 5,
-    "beam_size":5,
+    "beam_size":3,
     "model_path":"./model_transformer_translate_en_vi.pt"
 }
