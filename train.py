@@ -13,6 +13,10 @@ os.environ["TOKENIZERS_PARALLELISM"] = "false"
 from datasets import TranslateDataset
 from models import Transformer
 
+def read_data(source_file, target_file):
+    source_data = open(source_file).read().strip().split("\n")
+    target_data = open(target_file).read().strip().split("\n")
+    return source_data, target_data
 
 def validate_model(model, valid_loader, source_pad_id, target_pad_id, device):
     model.eval()
@@ -68,10 +72,6 @@ def train_model(model, train_loader, valid_loader, optim, n_epochs, source_pad_i
 def main():
     # configs
     from utils import configs
-    def read_data(source_file, target_file):
-        source_data = open(source_file).read().strip().split("\n")
-        target_data = open(target_file).read().strip().split("\n")
-        return source_data, target_data
 
     train_src_data, train_trg_data = read_data(configs["train_source_data"], configs["train_target_data"])
     valid_src_data, valid_trg_data = read_data(configs["valid_source_data"], configs["valid_target_data"])

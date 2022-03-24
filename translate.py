@@ -121,5 +121,30 @@ def main():
     print(f"--- Time: {end-st} (s)")
 
 
+
+    from torchtext.data.metrics import bleu_score
+    import re
+    def preprocess_seq(seq):
+        seq = re.sub(
+        r"[\*\"“”\n\\…\+\-\/\=\(\)‘•:\[\]\|’\!;]", " ", str(seq))
+        seq = re.sub(r"[ ]+", " ", seq)
+        seq = re.sub(r"\!+", "!", seq)
+        seq = re.sub(r"\,+", ",", seq)
+        seq = re.sub(r"\?+", "?", seq)
+        seq = seq.lower()
+        return seq
+    
+    from train import read_data
+    valid_src_data, valid_trg_data = read_data(configs["valid_source_data"], configs["valid_target_data"])
+    pred_sents = []
+    for sentence in tqdm(valid_src_data):
+        pred_trg = trans_sen(model, sentence, source_tokenizer, target_tokenizer, configs["target_max_seq_len"], configs["beam_size"], device)
+        pred_sents.append(pred_trg)
+    
+    pred_sents = [preprocess_seq(sent) for sent in pred_sents]
+    trg_sents = [[sent.split()] for sent in valid_trg_data]
+    print(bleu_score(pred_sents, trg_sents))
+
+
 if __name__ == "__main__":
     main()
