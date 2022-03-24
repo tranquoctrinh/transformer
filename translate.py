@@ -81,7 +81,6 @@ def translate(model, source_sentence, source_tokenizer, target_tokenizer, target
 def main():
     from utils import configs
     device = torch.device(configs["device"])
-    device = torch.device("cpu")
     source_tokenizer = AutoTokenizer.from_pretrained(configs["source_tokenizer"])
     target_tokenizer = AutoTokenizer.from_pretrained(configs["target_tokenizer"])  
 
