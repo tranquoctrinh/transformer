@@ -7,9 +7,11 @@ from transformers import AutoTokenizer
 from tqdm import tqdm
 
 from models import Transformer
+from datasets import TranslateDataset
 
 
-def translate(model, source_sentence, source_tokenizer, target_tokenizer, target_max_seq_len=256, beam_size=5, device=torch.device("cpu")):
+def translate(model, source_sentence, source_tokenizer, target_tokenizer, target_max_seq_len=256, 
+    beam_size=3, device=torch.device("cpu"), print_process=False):
     """
     This funciton will translate give a source sentence and return target sentence using beam search
     """
@@ -33,7 +35,10 @@ def translate(model, source_sentence, source_tokenizer, target_tokenizer, target
             target_mask = model.make_target_mask(input_token).to(device)
             # Decoder forward pass
             pred = model.decoder.forward(input_token, encoder_output, source_mask, target_mask)
-            pred = F.softmax(pred, dim=-1).view(-1)
+            # Forward to linear classify token in vocab and Softmax
+            pred = F.softmax(model.final_linear(pred), dim=-1)
+            # Get tail predict token
+            pred = pred[:, -1, :].view(-1)
             # Get top k tokens
             top_k_scores, top_k_tokens = pred.topk(beam_size)
             # Update beams
@@ -52,12 +57,13 @@ def translate(model, source_sentence, source_tokenizer, target_tokenizer, target
                 beam_size -= 1
         
         # Print screen progress
-        print(f"Step {_+1}/{target_max_seq_len}")
-        print(f"Beam size: {beam_size}")
-        print(f"Beams: {[target_tokenizer.decode(beam[0]) for beam in beams]}")
-        print(f"Completed beams: {[target_tokenizer.decode(beam[0]) for beam in completed]}")
-        print(f"Beams score: {[beam[1] for beam in beams]}")
-        print("-"*100)
+        if print_process:
+            print(f"Step {_+1}/{target_max_seq_len}")
+            print(f"Beam size: {beam_size}")
+            print(f"Beams: {[target_tokenizer.decode(beam[0]) for beam in beams]}")
+            print(f"Completed beams: {[target_tokenizer.decode(beam[0]) for beam in completed]}")
+            print(f"Beams score: {[beam[1] for beam in beams]}")
+            print("-"*100)
 
         if beam_size == 0:
             break
@@ -68,7 +74,7 @@ def translate(model, source_sentence, source_tokenizer, target_tokenizer, target
     # Get target sentence tokens
     target_tokens = completed[0][0]
     # Convert target sentence from tokens to string
-    target_sentence = target_tokenizer.decode(target_tokens)
+    target_sentence = target_tokenizer.decode(target_tokens, skip_special_tokens=True)
     return target_sentence
 
 
@@ -95,9 +101,24 @@ def main():
     model.to(device)
     print(f"Done load model on the {device} device")  
     
+    import time
+    st = time.time()
     # Translate a sentence
-    sentence = "This is my pen"
-    print(translate(model, sentence, source_tokenizer, target_tokenizer, configs["target_max_seq_len"], configs["beam_size"], device))
+    sentence = "My family is very poor, I had to go through hard life when I was young, now I have a better life."
+    print("--- English input sentence:", sentence)
+    print("--- Translating...")
+    trans_sen = translate(
+        model, 
+        sentence, 
+        source_tokenizer, 
+        target_tokenizer, 
+        configs["target_max_seq_len"], 
+        configs["beam_size"], 
+        device
+    )
+    end = time.time()
+    print("--- Sentences translated into Vietnamese:", trans_sen)
+    print(f"--- Time: {end-st} (s)")
 
 
 if __name__ == "__main__":
