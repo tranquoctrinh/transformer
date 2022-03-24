@@ -137,12 +137,12 @@ def main():
     valid_src_data, valid_trg_data = read_data(configs["valid_source_data"], configs["valid_target_data"])
     pred_sents = []
     for sentence in tqdm(valid_src_data):
-        pred_trg = trans_sen(model, sentence, source_tokenizer, target_tokenizer, configs["target_max_seq_len"], configs["beam_size"], device)
+        pred_trg = translate(model, sentence, source_tokenizer, target_tokenizer, configs["target_max_seq_len"], configs["beam_size"], device)
         pred_sents.append(pred_trg)
     
     pred_sents = [preprocess_seq(sent) for sent in pred_sents]
     trg_sents = [[sent.split()] for sent in valid_trg_data]
-    print(bleu_score(pred_sents, trg_sents))
+    print("BLEU:", bleu_score(pred_sents, trg_sents))
 
 
 if __name__ == "__main__":
