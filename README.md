@@ -48,11 +48,7 @@ The positional encodings have the same dimension d_model as the embeddings, so t
 $$PE_{(pos, 2i+1)}=cos(\frac{pos}{1000^{2i/d_{model}}})$$ -->
 
 <p align="center">
-<img src="https://latex.codecogs.com/png.image?\large&space;\dpi{110}\bg{white}PE_{(pos,&space;2i)}=sin(\frac{pos}{1000^{2i/d_{model}}})" title="https://latex.codecogs.com/png.image?\large \dpi{110}\bg{white}PE_{(pos, 2i)}=sin(\frac{pos}{1000^{2i/d_{model}}})" />
-</p>
-
-<p align="center">
-<img src="https://latex.codecogs.com/png.image?\large&space;\dpi{110}\bg{white}PE_{(pos,&space;2i&plus;1)}=cos(\frac{pos}{1000^{2i/d_{model}}})" title="https://latex.codecogs.com/png.image?\large \dpi{110}\bg{white}PE_{(pos, 2i+1)}=cos(\frac{pos}{1000^{2i/d_{model}}})" />
+<img src="https://latex.codecogs.com/png.image?\large&space;\dpi{110}\bg{white}\begin{}\\PE_{(pos,&space;2i)}=sin(\frac{pos}{1000^{2i/d_{model}}})&space;\\PE_{(pos,&space;2i&plus;1)}=cos(\frac{pos}{1000^{2i/d_{model}}})\end{}" title="https://latex.codecogs.com/png.image?\large \dpi{110}\bg{white}\begin{}\\PE_{(pos, 2i)}=sin(\frac{pos}{1000^{2i/d_{model}}}) \\PE_{(pos, 2i+1)}=cos(\frac{pos}{1000^{2i/d_{model}}})\end{}" />
 </p>
 
 
@@ -117,11 +113,7 @@ class SelfAttention(nn.Module):
 $$head_i = Attention(QWQ_i^Q, KW^K_i,VW^V_i)$$ -->
 
 <p align="center">
-<img src="https://latex.codecogs.com/png.image?\large&space;\dpi{110}\bg{white}MultiHead(Q,&space;K,&space;V&space;)&space;=&space;Concat(head_1,...,&space;head_h)W_O" title="https://latex.codecogs.com/png.image?\large \dpi{110}\bg{white}MultiHead(Q, K, V ) = Concat(head_1,..., head_h)W_O" />
-</p>
-
-<p align="center">
-<img src="https://latex.codecogs.com/png.image?\large&space;\dpi{110}\bg{white}head_i&space;=&space;Attention(QWQ_i^Q,&space;KW^K_i,VW^V_i)" title="https://latex.codecogs.com/png.image?\large \dpi{110}\bg{white}head_i = Attention(QWQ_i^Q, KW^K_i,VW^V_i)" />
+<img src="https://latex.codecogs.com/png.image?\large&space;\dpi{110}\bg{white}\begin{}\\MultiHead(Q,&space;K,&space;V&space;)&space;=&space;Concat(head_1,...,&space;head_h)W_O&space;\\head_i&space;=&space;Attention(QWQ_i^Q,&space;KW^K_i,VW^V_i)\end{}" title="https://latex.codecogs.com/png.image?\large \dpi{110}\bg{white}\begin{}\\MultiHead(Q, K, V ) = Concat(head_1,..., head_h)W_O \\head_i = Attention(QWQ_i^Q, KW^K_i,VW^V_i)\end{}" />
 </p>
 
 ```python
