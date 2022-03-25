@@ -23,7 +23,7 @@ If there is any suggestion or error, feel free to fire an issue to let me know. 
 
 ### 1) Download the dataset
 ```bash
-gdown --id 1Ty1bGrd0sCwEqXhsoViCUaNKa3lFwmPH
+gdown --id 1Fuo_ALIFKlUvOPbK5rUA5OfAS2wKn_95
 unzip en_vi.zip
 rm en_vi.zip
 mv data/ data_en_vi/
