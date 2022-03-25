@@ -43,10 +43,17 @@ python translate.py
 
 ## Positional Encoding
 The positional encodings have the same dimension $d_{model}$ as the embeddings, so that the two can be summed.
-$$PE_{(pos, 2i)}=sin(\frac{pos}{1000^{2i/d_{model}}})$$
+<!-- $$PE_{(pos, 2i)}=sin(\frac{pos}{1000^{2i/d_{model}}})$$
 
-$$PE_{(pos, 2i+1)}=cos(\frac{pos}{1000^{2i/d_{model}}})$$
+$$PE_{(pos, 2i+1)}=cos(\frac{pos}{1000^{2i/d_{model}}})$$ -->
 
+<p align="center">
+<img src="https://render.githubusercontent.com/render/math?math=PE_{(pos, 2i)}=sin(\frac{pos}{1000^{2i/d_{model}}})">
+</p>
+
+<p align="center">
+<img src="https://render.githubusercontent.com/render/math?math=PE_{(pos, 2i+1)}=cos(\frac{pos}{1000^{2i/d_{model}}})">
+</p>
 ```python
 # The positional encoding vector, embedding_dim is d_model
 class PositionalEncoder(nn.Module):
