@@ -188,6 +188,7 @@ Input goes through the Encoder Layer in the following order: Multi-head attentio
  </tr>
 </table>
 
+### Encoder
 ```python
 # Encoder transformer
 class Encoder(nn.Module):
@@ -215,7 +216,7 @@ class Encoder(nn.Module):
 ```
 
 ## Decoder
-
+### Decoder Layer
 ```python
 # Transformer decoder layer
 class DecoderLayer(nn.Module):
@@ -244,7 +245,51 @@ class DecoderLayer(nn.Module):
         x = x + self.dropout3(self.feed_forward(x2))
         return x
 ```
+### Decoder
+```python
+# Decoder transformer
+class Decoder(nn.Module):
+    def __init__(self, vocab_size, embedding_dim, max_seq_len,num_heads, num_layers, dropout=0.1):
+        super(Decoder, self).__init__()
+        self.embedding = nn.Embedding(vocab_size, embedding_dim)
+        self.layers = nn.ModuleList([DecoderLayer(embedding_dim, num_heads, dropout) for _ in range(num_layers)])
+        self.norm = Norm(embedding_dim)
+        self.position_embedding = PositionalEncoder(embedding_dim, max_seq_len, dropout)
+    
+    def forward(self, target, memory, source_mask, target_mask):
+        # Embed the source
+        x = self.embedding(target)
+        # Add the position embeddings
+        x = self.position_embedding(x)
+        # Propagate through the layers
+        for layer in self.layers:
+            x = layer(x, memory, source_mask, target_mask)
+        # Normalize
+        x = self.norm(x)
+        return x
+```
 
+## Transformer
+```python
+# Transformers
+class Transformer(nn.Module):
+    def __init__(self, source_vocab_size, target_vocab_size, source_max_seq_len, target_max_seq_len, embedding_dim, num_heads, num_layers, dropout=0.1):
+        super(Transformer, self).__init__()
+        self.encoder = Encoder(source_vocab_size, embedding_dim, source_max_seq_len, num_heads, num_layers, dropout)
+        self.decoder = Decoder(target_vocab_size, embedding_dim, target_max_seq_len, num_heads, num_layers, dropout)
+        self.final_linear = nn.Linear(embedding_dim, target_vocab_size)
+        self.dropout = nn.Dropout(dropout)
+    
+    def forward(self, source, target, source_mask, target_mask):
+        # Encoder forward pass
+        memory = self.encoder(source, source_mask)
+        # Decoder forward pass
+        output = self.decoder(target, memory, source_mask, target_mask)
+        # Final linear layer
+        output = self.dropout(output)
+        output = self.final_linear(output)
+        return output
+```
 ---
 # Performance
 
