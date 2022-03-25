@@ -42,18 +42,20 @@ python translate.py
 # Models
 
 ## Positional Encoding
-The positional encodings have the same dimension $d_{model}$ as the embeddings, so that the two can be summed.
+The positional encodings have the same dimension d_model as the embeddings, so that the two can be summed.
 <!-- $$PE_{(pos, 2i)}=sin(\frac{pos}{1000^{2i/d_{model}}})$$
 
 $$PE_{(pos, 2i+1)}=cos(\frac{pos}{1000^{2i/d_{model}}})$$ -->
 
 <p align="center">
-<img src="https://render.githubusercontent.com/render/math?math=PE_{(pos, 2i)}=sin(\frac{pos}{1000^{2i/d_{model}}})">
+<img src="https://latex.codecogs.com/png.image?\large&space;\dpi{110}\bg{white}PE_{(pos,&space;2i)}=sin(\frac{pos}{1000^{2i/d_{model}}})" title="https://latex.codecogs.com/png.image?\large \dpi{110}\bg{white}PE_{(pos, 2i)}=sin(\frac{pos}{1000^{2i/d_{model}}})" />
 </p>
 
 <p align="center">
-<img src="https://render.githubusercontent.com/render/math?math=PE_{(pos, 2i+1)}=cos(\frac{pos}{1000^{2i/d_{model}}})">
+<img src="https://latex.codecogs.com/png.image?\large&space;\dpi{110}\bg{white}PE_{(pos,&space;2i&plus;1)}=cos(\frac{pos}{1000^{2i/d_{model}}})" title="https://latex.codecogs.com/png.image?\large \dpi{110}\bg{white}PE_{(pos, 2i+1)}=cos(\frac{pos}{1000^{2i/d_{model}}})" />
 </p>
+
+
 ```python
 # The positional encoding vector, embedding_dim is d_model
 class PositionalEncoder(nn.Module):
@@ -81,7 +83,11 @@ class PositionalEncoder(nn.Module):
 
 ## Scaled Dot-Product Attention
 
-$$Attention(Q, K, V ) = softmax(\frac{QK^T}{\sqrt{d_k}})V$$
+<!-- $$Attention(Q, K, V ) = softmax(\frac{QK^T}{\sqrt{d_k}})V$$ -->
+<p align="center">
+<img src="https://latex.codecogs.com/png.image?\large&space;\dpi{110}\bg{white}Attention(Q,&space;K,&space;V&space;)&space;=&space;softmax(\frac{QK^T}{\sqrt{d_k}})V" title="https://latex.codecogs.com/png.image?\large \dpi{110}\bg{white}Attention(Q, K, V ) = softmax(\frac{QK^T}{\sqrt{d_k}})V" />
+</p>
+
 
 ```python
 # Self-attention layer
@@ -106,9 +112,17 @@ class SelfAttention(nn.Module):
 
 ## Multi-Head Attention
 
-$$MultiHead(Q, K, V ) = Concat(head_1,..., head_h)W_O$$
+<!-- $$MultiHead(Q, K, V ) = Concat(head_1,..., head_h)W_O$$
 
-$$head_i = Attention(QWQ_i^Q, KW^K_i,VW^V_i)$$
+$$head_i = Attention(QWQ_i^Q, KW^K_i,VW^V_i)$$ -->
+
+<p align="center">
+<img src="https://latex.codecogs.com/png.image?\large&space;\dpi{110}\bg{white}MultiHead(Q,&space;K,&space;V&space;)&space;=&space;Concat(head_1,...,&space;head_h)W_O" title="https://latex.codecogs.com/png.image?\large \dpi{110}\bg{white}MultiHead(Q, K, V ) = Concat(head_1,..., head_h)W_O" />
+</p>
+
+<p align="center">
+<img src="https://latex.codecogs.com/png.image?\large&space;\dpi{110}\bg{white}head_i&space;=&space;Attention(QWQ_i^Q,&space;KW^K_i,VW^V_i)" title="https://latex.codecogs.com/png.image?\large \dpi{110}\bg{white}head_i = Attention(QWQ_i^Q, KW^K_i,VW^V_i)" />
+</p>
 
 ```python
 # Multi-head attention layer
