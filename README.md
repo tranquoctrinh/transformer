@@ -43,12 +43,12 @@ python translate.py
 
 ## Positional Encoding
 The positional encodings have the same dimension d_model as the embeddings, so that the two can be summed.
-<!-- $$PE_{(pos, 2i)}=sin(\frac{pos}{1000^{2i/d_{model}}})$$
+<!-- $$PE_{(pos, 2i)}=sin(\frac{pos}{10000^{2i/d_{model}}})$$
 
-$$PE_{(pos, 2i+1)}=cos(\frac{pos}{1000^{2i/d_{model}}})$$ -->
+$$PE_{(pos, 2i+1)}=cos(\frac{pos}{10000^{2i/d_{model}}})$$ -->
 
 <p align="center">
-<img src="https://latex.codecogs.com/png.image?\large&space;\dpi{110}\bg{white}\begin{}\\PE_{(pos,&space;2i)}=sin(\frac{pos}{1000^{2i/d_{model}}})&space;\\PE_{(pos,&space;2i&plus;1)}=cos(\frac{pos}{1000^{2i/d_{model}}})\end{}" title="https://latex.codecogs.com/png.image?\large \dpi{110}\bg{white}\begin{}\\PE_{(pos, 2i)}=sin(\frac{pos}{1000^{2i/d_{model}}}) \\PE_{(pos, 2i+1)}=cos(\frac{pos}{1000^{2i/d_{model}}})\end{}" />
+<img src="https://latex.codecogs.com/png.image?\large&space;\dpi{110}\bg{white}\begin{}\\PE_{(pos,&space;2i)}=sin(\frac{pos}{10000^{2i/d_{model}}})&space;\\PE_{(pos,&space;2i&plus;1)}=cos(\frac{pos}{10000^{2i/d_{model}}})\end{}" title="https://latex.codecogs.com/png.image?\large \dpi{110}\bg{white}\begin{}\\PE_{(pos, 2i)}=sin(\frac{pos}{10000^{2i/d_{model}}}) \\PE_{(pos, 2i+1)}=cos(\frac{pos}{10000^{2i/d_{model}}})\end{}" />
 </p>
 
 
