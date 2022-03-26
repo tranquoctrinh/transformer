@@ -77,9 +77,10 @@ def translate(model, source_sentence, source_tokenizer, target_tokenizer, target
     target_sentence = target_tokenizer.decode(target_tokens, skip_special_tokens=True)
     return target_sentence
 
-
-def main():
-    from utils import configs
+def load_model_tokenizer(configs):
+    """
+    This function will load model and tokenizer from pretrained model and tokenizer
+    """
     device = torch.device(configs["device"])
     source_tokenizer = AutoTokenizer.from_pretrained(configs["source_tokenizer"])
     target_tokenizer = AutoTokenizer.from_pretrained(configs["target_tokenizer"])  
@@ -99,6 +100,10 @@ def main():
     model.eval()
     model.to(device)
     print(f"Done load model on the {device} device")  
+    return model, source_tokenizer, target_tokenizer
+
+def main():
+    from utils import configs
     
     import time
     st = time.time()
@@ -106,21 +111,22 @@ def main():
     sentence = "My family is very poor, I had to go through hard life when I was young, now I have a better life."
     print("--- English input sentence:", sentence)
     print("--- Translating...")
+    device = torch.device(configs["device"])
+    model, source_tokenizer, target_tokenizer = load_model_tokenizer(configs)
     trans_sen = translate(
-        model, 
-        sentence, 
-        source_tokenizer, 
-        target_tokenizer, 
-        configs["target_max_seq_len"], 
-        configs["beam_size"], 
-        device
+        model=model, 
+        sentence=sentence, 
+        source_tokenizer=source_tokenizer, 
+        target_tokenizer=target_tokenizer, 
+        target_max_seq_len=configs["target_max_seq_len"], 
+        beam_size=configs["beam_size"], 
+        device=device
     )
     end = time.time()
     print("--- Sentences translated into Vietnamese:", trans_sen)
     print(f"--- Time: {end-st} (s)")
 
-
-
+def calculate_bleu_score(model, source_tokenizer, target_tokenizer, configs):
     from torchtext.data.metrics import bleu_score
     import re
     def preprocess_seq(seq):

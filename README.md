@@ -314,7 +314,33 @@ class Transformer(nn.Module):
  
   
 ## Testing 
-- Soon.
+- Prediction
+```python
+from utils import configs
+from translate import load_model_tokenizer, translate
+# Translate a sentence
+sentence = "My family is very poor, I had to go through hard life when I was young, now I have a better life."
+print("--- English input sentence:", sentence)
+print("--- Translating...")
+device = torch.device(configs["device"])
+model, source_tokenizer, target_tokenizer = load_model_tokenizer(configs)
+trans_sen = translate(
+    model=model, 
+    sentence=sentence, 
+    source_tokenizer=source_tokenizer, 
+    target_tokenizer=target_tokenizer, 
+    target_max_seq_len=configs["target_max_seq_len"], 
+    beam_size=configs["beam_size"], 
+    device=device
+)
+print("--- Sentences translated into Vietnamese:", trans_sen)
+
+## Output
+--- English input sentence: My family is very poor, I had to go through hard life when I was young, now I have a better life.
+--- Translating...
+--- Sentences translated into Vietnamese: gia đình tôi rất nghèo, tôi phải trải qua cuộc sống khi còn trẻ, giờ tôi có một cuộc sống tốt đẹp hơn.
+```
+
 ---
 # TODO
   - Evaluation on the generated text.
