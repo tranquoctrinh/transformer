@@ -253,7 +253,7 @@ class DecoderLayer(nn.Module):
         x2 = self.norm1(x)
         x = x + self.dropout1(self.self_attention(x2, x2, x2, target_mask))
         x2 = self.norm2(x)
-        x = x + self.dropout2(self.self_attention(x2, memory, memory, source_mask))
+        x = x + self.dropout2(self.encoder_attention(x2, memory, memory, source_mask))
         x2 = self.norm3(x)
         x = x + self.dropout3(self.feed_forward(x2))
         return x
