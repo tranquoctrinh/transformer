@@ -1,4 +1,29 @@
-# Transformer - Attention is all you need - Pytorch Implementation
+# Table of Contents
+- [Table of Contents](#table-of-contents)
+- [1. Transformer - Attention is all you need - Pytorch Implementation](#1-transformer---attention-is-all-you-need---pytorch-implementation)
+- [2. Usage](#2-usage)
+  - [2.1. English-Vietnamese Translation: en-vi](#21-english-vietnamese-translation-en-vi)
+    - [2.1.1. Download the dataset](#211-download-the-dataset)
+    - [2.1.2. Train the model](#212-train-the-model)
+    - [2.1.3. Test the model](#213-test-the-model)
+- [3. Models](#3-models)
+  - [3.1. Positional Encoding](#31-positional-encoding)
+  - [3.2. Scaled Dot-Product Attention](#32-scaled-dot-product-attention)
+  - [3.3. Multi-Head Attention](#33-multi-head-attention)
+  - [3.4. Encoder](#34-encoder)
+    - [3.4.1. Encoder Layer](#341-encoder-layer)
+    - [3.4.2. Encoder](#342-encoder)
+  - [3.5. Decoder](#35-decoder)
+    - [3.5.1. Decoder Layer](#351-decoder-layer)
+    - [3.5.2. Decoder](#352-decoder)
+  - [3.6. Transformer](#36-transformer)
+- [4. Performance](#4-performance)
+  - [4.1. Testing](#41-testing)
+- [5. TODO](#5-todo)
+  - [5.1. - Attention weight plot.](#51---attention-weight-plot)
+- [6. References](#6-references)
+
+# 1. Transformer - Attention is all you need - Pytorch Implementation
 
 This is a PyTorch implementation of the Transformer model in the paper [Attention is All You Need](https://arxiv.org/abs/1706.03762) (Ashish Vaswani, Noam Shazeer, Niki Parmar, Jakob Uszkoreit, Llion Jones, Aidan N. Gomez, Lukasz Kaiser, Illia Polosukhin, arxiv, 2017).
 
@@ -17,11 +42,11 @@ The project support training and translation with trained model now.
 If there is any suggestion or error, feel free to fire an issue to let me know. :)
 
 
-# Usage
+# 2. Usage
 
-## English-Vietnamese Translation: en-vi
+## 2.1. English-Vietnamese Translation: en-vi
 
-### 1) Download the dataset
+### 2.1.1. Download the dataset
 ```bash
 gdown --id 1Fuo_ALIFKlUvOPbK5rUA5OfAS2wKn_95
 unzip en_vi.zip
@@ -29,19 +54,19 @@ rm en_vi.zip
 mv data/ data_en_vi/
 ```
 
-### 2) Train the model
+### 2.1.2. Train the model
 ```bash
 python train.py
 ```
 
-### 3) Test the model
+### 2.1.3. Test the model
 ```bash
 python translate.py
 ```
 ---
-# Models
+# 3. Models
 
-## Positional Encoding
+## 3.1. Positional Encoding
 The positional encodings have the same dimension d_model as the embeddings, so that the two can be summed.
 <!-- $$PE_{(pos, 2i)}=sin(\frac{pos}{10000^{2i/d_{model}}})$$
 
@@ -77,7 +102,7 @@ class PositionalEncoder(nn.Module):
         return x
 ```
 
-## Scaled Dot-Product Attention
+## 3.2. Scaled Dot-Product Attention
 
 <!-- $$Attention(Q, K, V ) = softmax(\frac{QK^T}{\sqrt{d_k}})V$$ -->
 <p align="center">
@@ -106,7 +131,7 @@ class SelfAttention(nn.Module):
         return output
 ```
 
-## Multi-Head Attention
+## 3.3. Multi-Head Attention
 
 <!-- $$MultiHead(Q, K, V ) = Concat(head_1,..., head_h)W_O$$
 
@@ -152,8 +177,8 @@ class MultiHeadAttention(nn.Module):
         output = self.out(output)
         return output
 ```
-## Encoder
-### Encoder Layer
+## 3.4. Encoder
+### 3.4.1. Encoder Layer
 ```python
 # Transformer encoder layer
 class EncoderLayer(nn.Module):
@@ -201,7 +226,7 @@ Input goes through the Encoder Layer in the following order: Multi-head attentio
  </tr>
 </table>
 
-### Encoder
+### 3.4.2. Encoder
 ```python
 # Encoder transformer
 class Encoder(nn.Module):
@@ -228,8 +253,8 @@ class Encoder(nn.Module):
         return x
 ```
 
-## Decoder
-### Decoder Layer
+## 3.5. Decoder
+### 3.5.1. Decoder Layer
 ```python
 # Transformer decoder layer
 class DecoderLayer(nn.Module):
@@ -258,7 +283,7 @@ class DecoderLayer(nn.Module):
         x = x + self.dropout3(self.feed_forward(x2))
         return x
 ```
-### Decoder
+### 3.5.2. Decoder
 ```python
 # Decoder transformer
 class Decoder(nn.Module):
@@ -282,7 +307,7 @@ class Decoder(nn.Module):
         return x
 ```
 
-## Transformer
+## 3.6. Transformer
 ```python
 # Transformers
 class Transformer(nn.Module):
@@ -304,7 +329,7 @@ class Transformer(nn.Module):
         return output
 ```
 ---
-# Performance
+# 4. Performance
 
 - Parameter settings:
   - batch size 40 
@@ -313,7 +338,7 @@ class Transformer(nn.Module):
   - cross_entropy loss
  
   
-## Testing 
+## 4.1. Testing 
 - Prediction
 ```python
 from utils import configs
@@ -342,8 +367,8 @@ print("--- Sentences translated into Vietnamese:", trans_sen)
 ```
 
 ---
-# TODO
+# 5. TODO
   - Evaluation on the generated text.
-  - Attention weight plot.
+  5.1. - Attention weight plot.
 ---
-# References
+# 6. References
