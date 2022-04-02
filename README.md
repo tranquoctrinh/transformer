@@ -326,7 +326,7 @@ class Transformer(nn.Module):
 # 4. Performance
 - Parameter settings:
     - batch size 40 
-    - epoch 50 
+    - n_epochs 50 
     - learning_rate 1e-4
     - cross_entropy loss
     - source_max_seq_len 256
