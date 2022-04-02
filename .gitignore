@@ -129,3 +129,4 @@ dmypy.json
 .pyre/
 
 data_en_vi/
+model_transformer_translate_en_vi.pt

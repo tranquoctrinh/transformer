@@ -212,16 +212,8 @@ class EncoderLayer(nn.Module):
  <tr>
     <td><img src="https://www.factored.ai/wp-content/uploads/2021/09/image2-580x1024.png" width="2000"></td>
     <td>
-Encoder
 
-Step 1: We embedding the input x, then add it to the positional vector vector.
-
-Step 2: Feedforward via N Encoder Layer
-
-Encoder Layer
-
-Input goes through the Encoder Layer in the following order: Multi-head attention, Residual connections output of Multi-Head attention, and then Layer Normalization
-
+Encoder: The encoder is composed of a stack of *N = 6* identical layers. Each layer has two sub-layers. The first is a multi-head self-attention mechanism, and the second is a simple, positionwise fully connected feed-forward network. We employ a residual connection around each of the two sub-layers, followed by layer normalization. That is, the output of each sub-layer is LayerNorm(x + Sublayer(x)), where Sublayer(x) is the function implemented by the sub-layer itself. To facilitate these residual connections, all sub-layers in the model, as well as the embedding layers, produce outputs of dimension 
 </td>
  </tr>
 </table>
@@ -255,6 +247,8 @@ class Encoder(nn.Module):
 
 ## 3.5. Decoder
 ### 3.5.1. Decoder Layer
+Decoder: The decoder is also composed of a stack of *N = 6* identical layers. In addition to the two sub-layers in each encoder layer, the decoder inserts a third sub-layer, which performs multi-head attention over the output of the encoder stack. Similar to the encoder, we employ residual connections around each of the sub-layers, followed by layer normalization. We also modify the self-attention sub-layer in the decoder stack to prevent positions from attending to subsequent positions. This masking, combined with fact that the output embeddings are offset by one position, ensures that the predictions for position *i* can depend only on the known outputs at positions less than *i*.
+
 ```python
 # Transformer decoder layer
 class DecoderLayer(nn.Module):
@@ -330,14 +324,20 @@ class Transformer(nn.Module):
 ```
 ---
 # 4. Performance
-
 - Parameter settings:
-  - batch size 40 
-  - epoch 50 
-  - learning_rate 0.0001
-  - cross_entropy loss
- 
-  
+    - batch size 40 
+    - epoch 50 
+    - learning_rate 1e-4
+    - cross_entropy loss
+    - source_max_seq_len 256
+    - target_max_seq_len 256
+    - num_heads 8
+    - num_layers 6
+    - embedding_dim 512
+    - dropout 0.1
+    - early_stopping 5
+
+
 ## 4.1. Testing 
 - Prediction
 ```python
@@ -367,8 +367,5 @@ print("--- Sentences translated into Vietnamese:", trans_sen)
 ```
 
 ---
-# 5. TODO
-  - Evaluation on the generated text.
-  5.1. - Attention weight plot.
----
-# 6. References
+# 5. References
+

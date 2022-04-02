@@ -1,4 +1,6 @@
 import torch
+import json
+import os
 
 configs = {
     "train_source_data":"./data_en_vi/train.en",
@@ -9,7 +11,7 @@ configs = {
     "target_tokenizer":"vinai/phobert-base",
     "source_max_seq_len":256,
     "target_max_seq_len":256,
-    "batch_size":40,
+    "batch_size":20,
     "device":"cuda:0" if torch.cuda.is_available() else "cpu",
     "embedding_dim": 512,
     "n_layers": 6,
@@ -19,5 +21,31 @@ configs = {
     "n_epochs":50,
     "print_freq": 5,
     "beam_size":3,
-    "model_path":"./model_transformer_translate_en_vi.pt"
+    "model_path":"./model_transformer_translate_en_vi.pt",
+    "early_stopping":5
 }
+
+import matplotlib.pyplot as plt
+
+# visualize log
+def plot_loss(log_path, log_dir):
+    log = json.load(open(log_path, "r"))
+
+    plt.figure()
+    plt.plot(log["train_loss"], label="train loss")
+    plt.plot(log["valid_loss"], label="valid loss")
+    plt.title("Loss per epoch")
+    plt.xlabel("Epoch")
+    plt.ylabel("Loss")
+    plt.legend()
+    plt.savefig(os.path.join(log_dir, "loss_epoch.png"))
+
+    # plot batch loss
+    plt.figure()
+    plt.plot(log["train_batch_loss"], label="train loss")
+    plt.plot(log["valid_batch_loss"], label="valid loss")
+    plt.title("Loss per batch")
+    plt.xlabel("Batch")
+    plt.ylabel("Loss")
+    plt.legend()
+    plt.savefig(os.path.join(log_dir, "loss_batch.png"))
