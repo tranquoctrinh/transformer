@@ -3,6 +3,7 @@ import torch.nn as nn
 import torch.nn.functional as F
 import time
 import re
+import json
 from transformers import AutoTokenizer
 from tqdm import tqdm
 from torchtext.data.metrics import bleu_score
@@ -11,6 +12,9 @@ from utils import configs
 from models import Transformer
 from datasets import TranslateDataset
 from train import read_data
+from nltk.translate.bleu_score import corpus_bleu
+from nltk.translate.bleu_score import SmoothingFunction
+smoothie = SmoothingFunction()
 
 
 def load_model_tokenizer(configs):
@@ -126,16 +130,25 @@ def calculate_bleu_score(model, source_tokenizer, target_tokenizer, configs):
         pred_trg = translate(model, sentence, source_tokenizer, target_tokenizer, configs["target_max_seq_len"], configs["beam_size"], device)
         pred_sents.append(pred_trg)
     
-    pred_sents = [preprocess_seq(sent) for sent in pred_sents]
-    trg_sents = [[sent.split()] for sent in valid_trg_data]
-    bleu4 =  bleu_score(pred_sents, trg_sents)
-    print("BLEU-4:", bleu4)
-    return bleu4
+    # write prediction to file
+    with open("logs/predict_valid.txt", "wb") as f:
+        for sent in pred_sents:
+            f.write(f"{sent}\n")
+
+    hypotheses = [preprocess_seq(sent).split() for sent in pred_sents]
+    references = [[sent.split()] for sent in valid_trg_data]
+    
+    weights = [(0.5, 0.5),(0.333, 0.333, 0.334),(0.25, 0.25, 0.25, 0.25)]
+    bleu_2 = corpus_bleu(references, hypotheses, weights=weights[0])
+    bleu_3 = corpus_bleu(references, hypotheses, weights=weights[1])
+    bleu_4 = corpus_bleu(references, hypotheses, weights=weights[2])
+    print(f"BLEU-2: {bleu_2} | BLEU-3: {bleu_3} | BLEU-4: {bleu_4}")
+    return {"bleu_2": bleu_2, "bleu_3": bleu_3, "bleu_4": bleu_4}
 
 
 def main():
     model, source_tokenizer, target_tokenizer = load_model_tokenizer(configs)
-    bleu = calculate_bleu_score(model, source_tokenizer, target_tokenizer, configs)
+    bleus = calculate_bleu_score(model, source_tokenizer, target_tokenizer, configs)
 
 
 if __name__ == "__main__":

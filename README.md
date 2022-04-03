@@ -1,29 +1,25 @@
 # Table of Contents
 - [Table of Contents](#table-of-contents)
-- [1. Transformer - Attention is all you need - Pytorch Implementation](#1-transformer---attention-is-all-you-need---pytorch-implementation)
-- [2. Usage](#2-usage)
-  - [2.1. English-Vietnamese Translation: en-vi](#21-english-vietnamese-translation-en-vi)
-    - [2.1.1. Download the dataset](#211-download-the-dataset)
-    - [2.1.2. Train the model](#212-train-the-model)
-    - [2.1.3. Test the model](#213-test-the-model)
-- [3. Models](#3-models)
-  - [3.1. Positional Encoding](#31-positional-encoding)
-  - [3.2. Scaled Dot-Product Attention](#32-scaled-dot-product-attention)
-  - [3.3. Multi-Head Attention](#33-multi-head-attention)
-  - [3.4. Encoder](#34-encoder)
-    - [3.4.1. Encoder Layer](#341-encoder-layer)
-    - [3.4.2. Encoder](#342-encoder)
-  - [3.5. Decoder](#35-decoder)
-    - [3.5.1. Decoder Layer](#351-decoder-layer)
-    - [3.5.2. Decoder](#352-decoder)
-  - [3.6. Transformer](#36-transformer)
-- [4. Performance](#4-performance)
-  - [4.1. Testing](#41-testing)
-- [5. TODO](#5-todo)
-  - [5.1. - Attention weight plot.](#51---attention-weight-plot)
-- [6. References](#6-references)
+- [Transformer - Attention is all you need - Pytorch Implementation](#transformer---attention-is-all-you-need---pytorch-implementation)
+- [Models](#models)
+  - [Positional Encoding](#positional-encoding)
+  - [Scaled Dot-Product Attention](#scaled-dot-product-attention)
+  - [Multi-Head Attention](#multi-head-attention)
+  - [Encoder](#encoder)
+    - [Encoder Layer](#encoder-layer)
+    - [Encoder](#encoder-1)
+  - [Decoder](#decoder)
+    - [Decoder Layer](#decoder-layer)
+    - [Decoder](#decoder-1)
+  - [Transformer](#transformer)
+- [Training](#training)
+  - [Download the dataset](#download-the-dataset)
+  - [Train the model](#train-the-model)
+- [Evaluation](#evaluation)
+- [Inference](#inference)
+- [References](#references)
 
-# 1. Transformer - Attention is all you need - Pytorch Implementation
+# Transformer - Attention is all you need - Pytorch Implementation
 
 This is a PyTorch implementation of the Transformer model in the paper [Attention is All You Need](https://arxiv.org/abs/1706.03762) (Ashish Vaswani, Noam Shazeer, Niki Parmar, Jakob Uszkoreit, Llion Jones, Aidan N. Gomez, Lukasz Kaiser, Illia Polosukhin, arxiv, 2017).
 
@@ -41,32 +37,10 @@ The project support training and translation with trained model now.
 
 If there is any suggestion or error, feel free to fire an issue to let me know. :)
 
-
-# 2. Usage
-
-## 2.1. English-Vietnamese Translation: en-vi
-
-### 2.1.1. Download the dataset
-```bash
-gdown --id 1Fuo_ALIFKlUvOPbK5rUA5OfAS2wKn_95
-unzip en_vi.zip
-rm en_vi.zip
-mv data/ data_en_vi/
-```
-
-### 2.1.2. Train the model
-```bash
-python train.py
-```
-
-### 2.1.3. Test the model
-```bash
-python translate.py
-```
 ---
-# 3. Models
+# Models
 
-## 3.1. Positional Encoding
+## Positional Encoding
 The positional encodings have the same dimension d_model as the embeddings, so that the two can be summed.
 <!-- $$PE_{(pos, 2i)}=sin(\frac{pos}{10000^{2i/d_{model}}})$$
 
@@ -102,7 +76,7 @@ class PositionalEncoder(nn.Module):
         return x
 ```
 
-## 3.2. Scaled Dot-Product Attention
+## Scaled Dot-Product Attention
 
 <!-- $$Attention(Q, K, V ) = softmax(\frac{QK^T}{\sqrt{d_k}})V$$ -->
 <p align="center">
@@ -131,7 +105,7 @@ class SelfAttention(nn.Module):
         return output
 ```
 
-## 3.3. Multi-Head Attention
+## Multi-Head Attention
 
 <!-- $$MultiHead(Q, K, V ) = Concat(head_1,..., head_h)W_O$$
 
@@ -177,8 +151,8 @@ class MultiHeadAttention(nn.Module):
         output = self.out(output)
         return output
 ```
-## 3.4. Encoder
-### 3.4.1. Encoder Layer
+## Encoder
+### Encoder Layer
 ```python
 # Transformer encoder layer
 class EncoderLayer(nn.Module):
@@ -217,7 +191,7 @@ Encoder: The encoder is composed of a stack of *N = 6* identical layers. Each la
 </figcaption>
 </figure>
 
-### 3.4.2. Encoder
+### Encoder
 ```python
 # Encoder transformer
 class Encoder(nn.Module):
@@ -244,8 +218,8 @@ class Encoder(nn.Module):
         return x
 ```
 
-## 3.5. Decoder
-### 3.5.1. Decoder Layer
+## Decoder
+### Decoder Layer
 Decoder: The decoder is also composed of a stack of *N = 6* identical layers. In addition to the two sub-layers in each encoder layer, the decoder inserts a third sub-layer, which performs multi-head attention over the output of the encoder stack. Similar to the encoder, we employ residual connections around each of the sub-layers, followed by layer normalization. We also modify the self-attention sub-layer in the decoder stack to prevent positions from attending to subsequent positions. This masking, combined with fact that the output embeddings are offset by one position, ensures that the predictions for position *i* can depend only on the known outputs at positions less than *i*.
 
 ```python
@@ -276,7 +250,7 @@ class DecoderLayer(nn.Module):
         x = x + self.dropout3(self.feed_forward(x2))
         return x
 ```
-### 3.5.2. Decoder
+### Decoder
 ```python
 # Decoder transformer
 class Decoder(nn.Module):
@@ -300,7 +274,7 @@ class Decoder(nn.Module):
         return x
 ```
 
-## 3.6. Transformer
+## Transformer
 ```python
 # Transformers
 class Transformer(nn.Module):
@@ -321,10 +295,22 @@ class Transformer(nn.Module):
         output = self.final_linear(output)
         return output
 ```
+
 ---
-# 4. Performance
+# Training
+## Download the dataset
+```bash
+gdown --id 1Fuo_ALIFKlUvOPbK5rUA5OfAS2wKn_95
+unzip en_vi.zip
+rm en_vi.zip
+mv data/ data_en_vi/
+```
+## Train the model
+```bash
+python train.py
+```
 - Parameter settings:
-    - batch size 40 
+    - batch size 20 
     - n_epochs 50 
     - learning_rate 1e-4
     - cross_entropy loss
@@ -335,13 +321,44 @@ class Transformer(nn.Module):
     - embedding_dim 512
     - dropout 0.1
     - early_stopping 5
+All the parameters are defined in the `utils.py` file. You can change them to your own settings.
+- Training:
+    - Validation loss: 2.1220
 
+Model training until epoch 15 and stop training because of early stopping. Best validation loss is 2.1220. 
+<figure>
+<p align="center">
+<img src="./logs/loss_epoch.png" width="700">
+<figcaption>Training loss and validation loss for each epoch.</figcaption>
+</p>
+</figure>
 
-## 4.1. Testing 
-- Prediction
+---
+
+# Evaluation
+See the file `evaluate.py`.
+
+To evaluate the model on validation data, we use BLEU score. I use NLTK to calculate BLEU score.
+
+```python
+from nltk.translate.bleu_score import corpus_bleu
+weights = [(0.5, 0.5),(0.333, 0.333, 0.334),(0.25, 0.25, 0.25, 0.25)]
+# Calculate BLEU-2 score
+bleu_2 = corpus_bleu(references, hypotheses, weights=weights[0])
+# Calculate BLEU-3 score
+bleu_3 = corpus_bleu(references, hypotheses, weights=weights[1])
+# Calculate BLEU-4 score
+bleu_4 = corpus_bleu(references, hypotheses, weights=weights[2])
+```
+
+My model achieves BLEU-2 is 0.3234, BLEU-3 is 0.2343, BLEU-4 is 0.1715.
+
+# Inference 
+See the file `translate.py`. If you don't have the resources to train the model, you can download my [pre-trained model](https://drive.google.com/file/d/1d04LmLaQmIp9slI4v-yXqNyQJVy2r_8o/view?usp=sharing) to use.
+
 ```python
 from utils import configs
-from translate import load_model_tokenizer, translate
+from evaluate import load_model_tokenizer, translate
 # Translate a sentence
 sentence = "My family is very poor, I had to go through hard life when I was young, now I have a better life."
 print("--- English input sentence:", sentence)
@@ -362,9 +379,8 @@ print("--- Sentences translated into Vietnamese:", trans_sen)
 ## Output
 --- English input sentence: My family is very poor, I had to go through hard life when I was young, now I have a better life.
 --- Translating...
---- Sentences translated into Vietnamese: gia đình tôi rất nghèo, tôi phải trải qua cuộc sống khi còn trẻ, giờ tôi có một cuộc sống tốt đẹp hơn.
+--- Sentences translated into Vietnamese: gia đình tôi rất nghèo, tôi đã phải trải qua cuộc sống khó khăn khi còn trẻ, giờ tôi có một cuộc sống tốt hơn.
 ```
 
 ---
-# 5. References
-
+# References

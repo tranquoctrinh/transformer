@@ -42,7 +42,10 @@ def plot_loss(log_path, log_dir):
 
     # plot batch loss
     plt.figure()
-    plt.plot(log["train_batch_loss"], label="train loss")
+    lst = log["train_batch_loss"]
+    n = int(len(log["train_batch_loss"]) / len(log["valid_batch_loss"]))
+    train_batch_loss = [lst[i:i + n][0] for i in range(0, len(lst), n)]
+    plt.plot(train_batch_loss, label="train loss")
     plt.plot(log["valid_batch_loss"], label="valid loss")
     plt.title("Loss per batch")
     plt.xlabel("Batch")
