@@ -321,7 +321,9 @@ python train.py
     - embedding_dim 512
     - dropout 0.1
     - early_stopping 5
+
 All the parameters are defined in the `utils.py` file. You can change them to your own settings.
+
 - Training:
     - Validation loss: 2.1220
 
