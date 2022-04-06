@@ -37,6 +37,20 @@ The project support training and translation with trained model now.
 
 If there is any suggestion or error, feel free to fire an issue to let me know. :)
 
+The directory structure of this project is shown below:
+```bash
+transformer/            # this repository
+├── data_en_vi/         # data directory
+├── logs/               # log directory
+├── datasets.py
+├── evaluate.py
+├── models.py
+├── README.md
+├── train.py
+├── translate.py
+└── utils.py
+```
+
 ---
 # Models
 
