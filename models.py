@@ -102,13 +102,13 @@ class Norm(nn.Module):
 
 # Transformer encoder layer
 class EncoderLayer(nn.Module):
-    def __init__(self, embedding_dim, num_heads, dropout=0.1):
+    def __init__(self, embedding_dim, num_heads, ff_dim=2048, dropout=0.1):
         super(EncoderLayer, self).__init__()
         self.self_attention = MultiHeadAttention(embedding_dim, num_heads, dropout)
         self.feed_forward = nn.Sequential(
-            nn.Linear(embedding_dim, embedding_dim * 4),
+            nn.Linear(embedding_dim, ff_dim),
             nn.ReLU(),
-            nn.Linear(embedding_dim * 4, embedding_dim)
+            nn.Linear(ff_dim, embedding_dim)
         )
         self.dropout1 = nn.Dropout(dropout)
         self.dropout2 = nn.Dropout(dropout)
@@ -125,14 +125,14 @@ class EncoderLayer(nn.Module):
 
 # Transformer decoder layer
 class DecoderLayer(nn.Module):
-    def __init__(self, embedding_dim, num_heads, dropout=0.1):
+    def __init__(self, embedding_dim, num_heads, ff_dim=2048, dropout=0.1):
         super(DecoderLayer, self).__init__()
         self.self_attention = MultiHeadAttention(embedding_dim, num_heads, dropout)
         self.encoder_attention = MultiHeadAttention(embedding_dim, num_heads, dropout)
         self.feed_forward = nn.Sequential(
-            nn.Linear(embedding_dim, embedding_dim * 4),
+            nn.Linear(embedding_dim, ff_dim),
             nn.ReLU(),
-            nn.Linear(embedding_dim * 4, embedding_dim)
+            nn.Linear(ff_dim, embedding_dim)
         )
         self.dropout1 = nn.Dropout(dropout)
         self.dropout2 = nn.Dropout(dropout)
@@ -158,7 +158,7 @@ class Encoder(nn.Module):
         self.num_layers = num_layers
         self.num_heads = num_heads
         self.embedding_dim = embedding_dim
-        self.layers = nn.ModuleList([EncoderLayer(embedding_dim, num_heads, dropout) for _ in range(num_layers)])
+        self.layers = nn.ModuleList([EncoderLayer(embedding_dim, num_heads, 2048, dropout) for _ in range(num_layers)])
         self.norm = Norm(embedding_dim)
         self.position_embedding = PositionalEncoder(embedding_dim, max_seq_len, dropout)
     
@@ -182,7 +182,7 @@ class Decoder(nn.Module):
         self.num_layers = num_layers
         self.num_heads = num_heads
         self.embedding_dim = embedding_dim
-        self.layers = nn.ModuleList([DecoderLayer(embedding_dim, num_heads, dropout) for _ in range(num_layers)])
+        self.layers = nn.ModuleList([DecoderLayer(embedding_dim, num_heads, 2048, dropout) for _ in range(num_layers)])
         self.norm = Norm(embedding_dim)
         self.position_embedding = PositionalEncoder(embedding_dim, max_seq_len, dropout)
     

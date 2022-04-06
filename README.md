@@ -156,13 +156,13 @@ class MultiHeadAttention(nn.Module):
 ```python
 # Transformer encoder layer
 class EncoderLayer(nn.Module):
-    def __init__(self, embedding_dim, num_heads, dropout=0.1):
+    def __init__(self, embedding_dim, num_heads, ff_dim=2048, dropout=0.1):
         super(EncoderLayer, self).__init__()
         self.self_attention = MultiHeadAttention(embedding_dim, num_heads, dropout)
         self.feed_forward = nn.Sequential(
-            nn.Linear(embedding_dim, embedding_dim * 4),
+            nn.Linear(embedding_dim, ff_dim),
             nn.ReLU(),
-            nn.Linear(embedding_dim * 4, embedding_dim)
+            nn.Linear(ff_dim, embedding_dim)
         )
         self.dropout1 = nn.Dropout(dropout)
         self.dropout2 = nn.Dropout(dropout)
