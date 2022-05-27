@@ -18,6 +18,7 @@ def main():
         sentence=sentence, 
         source_tokenizer=source_tokenizer, 
         target_tokenizer=target_tokenizer, 
+        source_max_seq_len=configs["source_max_seq_len"],
         target_max_seq_len=configs["target_max_seq_len"], 
         beam_size=configs["beam_size"], 
         device=device

@@ -43,13 +43,13 @@ def load_model_tokenizer(configs):
     return model, source_tokenizer, target_tokenizer
 
 
-def translate(model, sentence, source_tokenizer, target_tokenizer, target_max_seq_len=256, 
-    beam_size=3, device=torch.device("cpu"), print_process=False):
+def translate(model, sentence, source_tokenizer, target_tokenizer, source_max_seq_len=256, 
+    target_max_seq_len=256, beam_size=3, device=torch.device("cpu"), print_process=False):
     """
     This funciton will translate give a source sentence and return target sentence using beam search
     """
     # Convert source sentence to tensor
-    source_tokens = source_tokenizer.encode(sentence)
+    source_tokens = source_tokenizer.encode(sentence)[:source_max_seq_len]
     source_tensor = torch.tensor(source_tokens).unsqueeze(0).to(device)
     # Create source sentence mask
     source_mask = model.make_source_mask(source_tensor, source_tokenizer.pad_token_id).to(device)
@@ -127,7 +127,7 @@ def calculate_bleu_score(model, source_tokenizer, target_tokenizer, configs):
 
     pred_sents = []
     for sentence in tqdm(valid_src_data):
-        pred_trg = translate(model, sentence, source_tokenizer, target_tokenizer, configs["target_max_seq_len"], configs["beam_size"], device)
+        pred_trg = translate(model, sentence, source_tokenizer, target_tokenizer, configs["source_max_seq_len"], configs["target_max_seq_len"], configs["beam_size"], device)
         pred_sents.append(pred_trg)
     
     # write prediction to file
