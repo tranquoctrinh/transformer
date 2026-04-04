@@ -66,7 +66,7 @@ def train(model, train_loader, valid_loader, optim, n_epochs, source_pad_id, tar
     if not os.path.exists(log_dir):
         os.makedirs(log_dir)
 
-    best_val_loss = np.Inf
+    best_val_loss = np.inf
     best_epoch = 1
     count_early_stop = 0
     log = {"train_loss": [], "valid_loss": [], "train_batch_loss": [], "valid_batch_loss": []}
